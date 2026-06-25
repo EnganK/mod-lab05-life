@@ -1,10 +1,14 @@
 ﻿using cli_life;
+//using Microsoft.VisualStudio.TestTools.UnitTesting;
+//using System;
+//using System.Net;
 
 namespace Tests
 {
+	[TestClass]
 	public class CellTests
 	{
-		[Fact]
+		[TestMethod]
 		public void DetermineNextLiveState_LiveCellWithTwoLiveNeighbors_StaysAlive()
 		{
 			var cell = new Cell { IsAlive = true };
@@ -12,78 +16,79 @@ namespace Tests
 			cell.neighbors.Add(new Cell { IsAlive = true });
 			cell.DetermineNextLiveState();
 			cell.Advance();
-			Assert.True(cell.IsAlive);
+			Assert.IsTrue(cell.IsAlive);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DetermineNextLiveState_LiveCellWithThreeLiveNeighbors_StaysAlive()
 		{
 			var cell = new Cell { IsAlive = true };
 			for (int i = 0; i < 3; i++) cell.neighbors.Add(new Cell { IsAlive = true });
 			cell.DetermineNextLiveState();
 			cell.Advance();
-			Assert.True(cell.IsAlive);
+			Assert.IsTrue(cell.IsAlive);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DetermineNextLiveState_LiveCellWithOneLiveNeighbor_Dies()
 		{
 			var cell = new Cell { IsAlive = true };
 			cell.neighbors.Add(new Cell { IsAlive = true });
 			cell.DetermineNextLiveState();
 			cell.Advance();
-			Assert.False(cell.IsAlive);
+			Assert.IsFalse(cell.IsAlive);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DetermineNextLiveState_DeadCellWithThreeLiveNeighbors_BecomesAlive()
 		{
 			var cell = new Cell { IsAlive = false };
 			for (int i = 0; i < 3; i++) cell.neighbors.Add(new Cell { IsAlive = true });
 			cell.DetermineNextLiveState();
 			cell.Advance();
-			Assert.True(cell.IsAlive);
+			Assert.IsTrue(cell.IsAlive);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void DetermineNextLiveState_DeadCellWithTwoLiveNeighbors_StaysDead()
 		{
 			var cell = new Cell { IsAlive = false };
 			for (int i = 0; i < 2; i++) cell.neighbors.Add(new Cell { IsAlive = true });
 			cell.DetermineNextLiveState();
 			cell.Advance();
-			Assert.False(cell.IsAlive);
+			Assert.IsFalse(cell.IsAlive);
 		}
 	}
 
+	[TestClass]
 	public class BoardTests
 	{
-		[Fact]
+		[TestMethod]
 		public void Board_CorrectDimensions()
 		{
 			var board = new Board(100, 100, 10);
-			Assert.Equal(10, board.Columns);
-			Assert.Equal(10, board.Rows);
+			Assert.AreEqual(10, board.Columns);
+			Assert.AreEqual(10, board.Rows);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Board_ConnectNeighbors_AllCellsHaveEightNeighbors()
 		{
 			var board = new Board(100, 100, 10);
 			foreach (var cell in board.Cells)
-				Assert.Equal(8, cell.neighbors.Count);
+				Assert.HasCount(8, cell.neighbors);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Board_Advance_IncrementsStep()
 		{
 			var board = new Board(100, 100, 10);
 			var initialStep = board.Step;
 			board.Advance();
-			Assert.Equal(initialStep + 1, board.Step);
+			Assert.AreEqual(initialStep + 1, board.Step);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Board_SaveAndLoadState_RestoresCorrectState()
 		{
 			var board1 = new Board(100, 100, 10);
@@ -93,13 +98,14 @@ namespace Tests
 			board2.LoadState("test_state.txt");
 			for (int x = 0; x < board1.Columns; x++)
 				for (int y = 0; y < board1.Rows; y++)
-					Assert.Equal(board1.Cells[x, y].IsAlive, board2.Cells[x, y].IsAlive);
+					Assert.AreEqual(board1.Cells[x, y].IsAlive, board2.Cells[x, y].IsAlive);
 		}
 	}
 
+	[TestClass]
 	public class SavedStateTests
 	{
-		[Fact]
+		[TestMethod]
 		public void Serialize_Deserialize_RoundTrip()
 		{
 			var original = new SavedState
@@ -110,34 +116,36 @@ namespace Tests
 			};
 			var serialized = original.Serialize();
 			var deserialized = SavedState.Deserialize(serialized);
-			Assert.Equal(original.Width, deserialized.Width);
-			Assert.Equal(original.Height, deserialized.Height);
-			Assert.Equal(original.state, deserialized.state);
+			Assert.AreEqual(original.Width, deserialized.Width);
+			Assert.AreEqual(original.Height, deserialized.Height);
+			for (int i = 0; i < original.state.Length; i++)
+				Assert.AreEqual(original.state[i], deserialized.state[i]);
 		}
 	}
 
+	[TestClass]
 	public class BoardAnalyzerTests
 	{
-		[Fact]
+		[TestMethod]
 		public void Analyze_EmptyBoard_ReturnsZero()
 		{
 			var board = new Board(100, 100, 10);
 			var result = BoardAnalyzer.Analize(board);
-			Assert.Equal(0, result.liveCells);
-			Assert.Equal(0, result.clusters);
+			Assert.AreEqual(0, result.liveCells);
+			Assert.AreEqual(0, result.clusters);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Analyze_SingleLiveCell_ReturnsOneLiveCell()
 		{
 			var board = new Board(100, 100, 10);
 			board.Cells[0, 0].IsAlive = true;
 			var result = BoardAnalyzer.Analize(board);
-			Assert.Equal(1, result.liveCells);
-			Assert.Equal(1, result.clusters);
+			Assert.AreEqual(1, result.liveCells);
+			Assert.AreEqual(1, result.clusters);
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Analyze_BlockPattern_DetectsBlock()
 		{
 			var board = new Board(100, 100, 10);
@@ -146,31 +154,32 @@ namespace Tests
 			board.Cells[0, 1].IsAlive = true;
 			board.Cells[1, 1].IsAlive = true;
 			var result = BoardAnalyzer.Analize(board);
-			Assert.Equal(1, result.figures["block"]);
+			Assert.AreEqual(1, result.figures["block"]);
 		}
 	}
 
+	[TestClass]
 	public class ExtensionsTests
 	{
-		[Fact]
+		[TestMethod]
 		public void Variance_EmptyList_ReturnsZero()
 		{
 			var list = new List<int>();
-			Assert.Equal(0, list.Variance());
+			Assert.AreEqual(0, list.Variance());
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Variance_SingleElement_ReturnsZero()
 		{
 			var list = new List<int> { 5 };
-			Assert.Equal(0, list.Variance());
+			Assert.AreEqual(0, list.Variance());
 		}
 
-		[Fact]
+		[TestMethod]
 		public void Variance_TwoElements_CorrectCalculation()
 		{
 			var list = new List<int> { 1, 3 };
-			Assert.Equal(1, list.Variance());
+			Assert.AreEqual(1, list.Variance());
 		}
 	}
 }
